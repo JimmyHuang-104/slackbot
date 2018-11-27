@@ -61,22 +61,37 @@ function slack(options) {
     });
 }
 
-slack(test_options)
-    .then(() => {
-        return slack(post_options);
-    })
-    .then((data) => {
-        const delete_payload = {
-            channel: data.channel,
-            ts: data.ts,
-            as_user
-        };
-        const delete_options = slack_options('POST', '/api/chat.delete', delete_payload);
-        return setTimeout(() => { slack(delete_options) }, 3000);
-    })
-    .then(() => {
-        console.log('Done');
-    })
-    .catch((err) => {
-        console.log(err);
+function delay(value, ms = 3000) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(value);
+        }, ms);
     });
+}
+
+exports.handler = async (event) => {
+    return new Promise((resolve, reject) => {
+        slack(test_options)
+            .then(() => {
+                return slack(post_options);
+            })
+            .then((data) => {
+                const delete_payload = {
+                    channel: data.channel,
+                    ts: data.ts,
+                    as_user
+                };
+                const delete_options = slack_options('POST', '/api/chat.delete', delete_payload);
+                return delay(delete_options, 2000);
+            })
+            .then((delete_options) => {
+                return slack(delete_options);
+            })
+            .then(() => {
+                resolve('Done');
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+};
