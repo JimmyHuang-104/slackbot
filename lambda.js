@@ -6,12 +6,13 @@ const token = process.env.slack_token || '';
 const channel = process.env.slack_channel || '';
 const message = process.env.slack_message || today_message(message_data);
 const atHere = process.env.slack_atHere || false;
+const atSomeone = process.env.slack_atSomeone || false;
 const as_user = process.env.slack_as_user || true;
 const hostname = 'slack.com';
 
 const post_payload = {
     channel,
-    text: atHere ? `@here ${message}` : message,
+    text: message_text(atHere, atSomeone, message),
     as_user,
     parse: 'full'
 };
@@ -27,6 +28,11 @@ function today_message(message_array) {
     const today = new Date();
     const daynum = today.getDOY();
     return message_array[daynum % message_array.length]
+}
+
+function message_text(atHere, atSomeone, message) {
+    // atHere > atSomeone
+    return atHere ? `@here ${message}` : atSomeone ? `@${atSomeone} ${message}` : message
 }
 
 function slack_options(method, path, payload) {
