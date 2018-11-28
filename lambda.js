@@ -23,15 +23,23 @@ function today_message(message_array) {
     Date.prototype.getDOY = function () {
         var onejan = new Date(this.getFullYear(), 0, 1);
         return Math.ceil((this - onejan) / 86400000);
-    }
+    };
     const today = new Date();
     const daynum = today.getDOY();
-    return message_array[daynum % message_array.length]
+    return message_array[daynum % message_array.length];
 }
 
 function message_text(atHere, atSomeone, message) {
     // atHere > atSomeone
-    return atHere ? `@here ${message}` : atSomeone ? `<@${atSomeone}> ${message}` : message
+    let tag_people;
+    if (atSomeone && typeof 'string') {
+        tag_people = '';
+        atSomeone.split(' ').map(value => {
+            let tag_template = `<@${value}>`;
+            tag_people += `${tag_template} `;
+        });
+    }
+    return atHere ? `@here ${message}` : tag_people ? `${tag_people} ${message}` : message;
 }
 
 function slack_options(method, path, payload) {
