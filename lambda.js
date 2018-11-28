@@ -13,8 +13,7 @@ const hostname = 'slack.com';
 const post_payload = {
     channel,
     text: message_text(atHere, atSomeone, message),
-    as_user,
-    parse: 'full'
+    as_user
 };
 
 const test_options = slack_options('POST', '/api/api.test');
@@ -32,7 +31,7 @@ function today_message(message_array) {
 
 function message_text(atHere, atSomeone, message) {
     // atHere > atSomeone
-    return atHere ? `@here ${message}` : atSomeone ? `@${atSomeone} ${message}` : message
+    return atHere ? `@here ${message}` : atSomeone ? `<@${atSomeone}> ${message}` : message
 }
 
 function slack_options(method, path, payload) {
