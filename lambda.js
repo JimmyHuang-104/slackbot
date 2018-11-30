@@ -39,7 +39,7 @@ function message_text(atHere, atSomeone, message) {
             tag_people += `${tag_template} `;
         });
     }
-    return atHere ? `@here ${message}` : tag_people ? `${tag_people} ${message}` : message;
+    return atHere ? `<!here> ${message}` : tag_people ? `${tag_people} ${message}` : message;
 }
 
 function slack_options(method, path, payload) {
