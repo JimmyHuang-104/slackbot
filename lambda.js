@@ -32,7 +32,7 @@ function today_message(message_array) {
 function message_text(atHere, atSomeone, message) {
     // atHere > atSomeone
     let tag_people;
-    if (atSomeone && typeof 'string') {
+    if (atSomeone && typeof atSomeone === 'string') {
         tag_people = '';
         atSomeone.split(' ').map(value => {
             let tag_template = `<@${value}>`;
