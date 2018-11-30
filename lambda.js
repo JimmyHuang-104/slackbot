@@ -20,7 +20,7 @@ const test_options = slack_options('POST', '/api/api.test');
 const post_options = slack_options('POST', '/api/chat.postMessage', post_payload);
 
 function today_message(message_array) {
-    Date.prototype.getDOY = function () {
+    Date.prototype.getDOY = () => {
         var onejan = new Date(this.getFullYear(), 0, 1);
         return Math.ceil((this - onejan) / 86400000);
     };
