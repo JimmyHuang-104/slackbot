@@ -1,3 +1,4 @@
+'use strict';
 const https = require('https');
 const querystring = require('querystring');
 const message_data = require('./data.json');
@@ -8,12 +9,16 @@ const message = process.env.slack_message || today_message(message_data);
 const atHere = process.env.slack_atHere || false;
 const atSomeone = process.env.slack_atSomeone || false;
 const as_user = process.env.slack_as_user || true;
+const icon_url = process.env.slack_icon_url || false;
+const username = process.env.slack_username || 'bot';
 const hostname = 'slack.com';
 
 const post_payload = {
     channel,
     text: message_text(atHere, atSomeone, message),
-    as_user
+    as_user,
+    icon_url,
+    username
 };
 
 const test_options = slack_options('POST', '/api/api.test');
