@@ -3,19 +3,22 @@ const https = require('https');
 const querystring = require('querystring');
 const message_data = require('./data.json');
 
+const hostname = 'slack.com';
 const token = process.env.slack_token || '';
+
+const username = process.env.slack_username || 'bot';
+const icon_url = process.env.slack_icon_url || false;
+const as_user = process.env.slack_as_user || true;
+
 const channel = process.env.slack_channel || '';
 const message = process.env.slack_message || today_message(message_data);
 const atHere = process.env.slack_atHere || false;
 const atSomeone = process.env.slack_atSomeone || false;
-const as_user = process.env.slack_as_user || true;
-const icon_url = process.env.slack_icon_url || false;
-const username = process.env.slack_username || 'bot';
-const hostname = 'slack.com';
+const emoji = process.env.slack_emoji || ' :ningning:';
 
 const post_payload = {
     channel,
-    text: message_text(atHere, atSomeone, message),
+    text: message_text(atHere, atSomeone, message) + emoji,
     as_user,
     icon_url,
     username
@@ -97,7 +100,7 @@ function delay(value, ms = 3000) {
     });
 }
 
-exports.test = async () => {
+exports.test = async (event) => {
     return new Promise((resolve, reject) => {
         slack(test_options)
             .then(() => {
@@ -124,7 +127,7 @@ exports.test = async () => {
     });
 };
 
-exports.handler = async () => {
+exports.handler = async (event) => {
     return new Promise((resolve, reject) => {
         slack(test_options)
             .then(() => {
