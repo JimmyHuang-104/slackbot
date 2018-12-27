@@ -3,22 +3,23 @@ const https = require('https');
 const querystring = require('querystring');
 const message_data = require('./data.json');
 
-const HOSTNAME = 'slack.com';
 const TOKEN = process.env.slack_token || '';
 
-function slack(method, path) {
-    this.method = method;
-    this.path = path;
+const SLACK = new slack(TOKEN);
+
+function slack(token) {
+    this.hostname = 'slack.com';
+    this.token = token;
 }
 
-slack.prototype.request_option = function (payload) {
+slack.prototype.request_option = function (method, path, payload) {
     if (payload && typeof payload == 'object') {
-        payload.token = TOKEN
+        payload.token = this.token
     }
     return {
-        hostname: HOSTNAME,
-        path: payload ? this.path + '?' + querystring.stringify(payload) : this.path,
-        method: this.method,
+        hostname: this.hostname,
+        path: payload ? path + '?' + querystring.stringify(payload) : path,
+        method,
         headers: {
             'Content-Type': 'application/json',
         }
@@ -36,6 +37,33 @@ slack.prototype.message = function (atHere, atSomeone, message) {
         });
     }
     return atHere ? `<!here> ${message}` : tag_people ? `${tag_people} ${message}` : message;
+}
+
+slack.prototype.test = function () {
+    let options = this.request_option('POST', '/api/api.test');
+    return request(options);
+}
+
+slack.prototype.post_message = function (channel, text, as_user, icon_url, username) {
+    let payload = {
+        channel,
+        text,
+        as_user,
+        icon_url,
+        username
+    };
+    let options = this.request_option('POST', '/api/chat.postMessage', payload);
+    return request(options);
+}
+
+slack.prototype.delete_message = function (channel, ts, as_user) {
+    let payload = {
+        channel,
+        ts,
+        as_user
+    }
+    let options = this.request_option('POST', '/api/chat.delete', payload);
+    return request(options);
 }
 
 function today_message(message_array) {
@@ -87,46 +115,29 @@ function delay(value, ms = 3000) {
 
 exports.test = async (event) => {
     return new Promise((resolve, reject) => {
-        let test = new slack('POST', '/api/api.test');
-        let test_options = test.request_option();
-        request(test_options)
+        SLACK.test()
             .then(() => {
-                const username = event.slack_username || 'bot';
-                const icon_url = event.slack_icon_url || false;
-                const as_user = event.slack_as_user || true;
+                const username = event.username || 'bot';
+                const icon_url = event.icon_url || false;
+                const as_user = event.as_user || true;
 
-                const channel = event.slack_channel || '';
-                const message = event.slack_message || today_message(message_data);
-                const atHere = event.slack_atHere || false;
-                const atSomeone = event.slack_atSomeone || false;
-                const emoji = event.slack_emoji || ' :ningning:';
-
-                let post = new slack('POST', '/api/chat.postMessage')
-                let text = post.message(atHere, atSomeone, message) + emoji;
-                let post_options = post.request_option({
-                    channel,
-                    text,
-                    as_user,
-                    icon_url,
-                    username
-                })
-                return request(post_options);
+                const channel = event.channel || '';
+                const message = event.message || today_message(message_data);
+                const atHere = event.atHere || false;
+                const atSomeone = event.atSomeone || false;
+                const emoji = event.emoji || ' :ningning:';
+                let text = SLACK.message(atHere, atSomeone, message) + emoji;
+                return SLACK.post_message(channel, text, as_user, icon_url, username)
             })
             .then((data) => {
-                const delete_payload = {
-                    channel: data.channel,
-                    ts: data.ts,
-                    as_user: event.slack_as_user
-                };
-                let del = new slack('POST', '/api/chat.delete')
-                let delete_options = del.request_option(delete_payload)
-                return delay(delete_options, 5000)
+                return delay(data, 5000)
             })
-            .then((delete_options) => {
-                return request(delete_options);
+            .then((data) => {
+                const as_user = event.as_user || true;
+                return SLACK.delete_message(data.channel, data.ts, as_user)
             })
             .then(() => {
-                resolve('Done')
+                resolve('Done');
             })
             .catch((err) => {
                 reject(err)
@@ -136,33 +147,22 @@ exports.test = async (event) => {
 
 exports.handler = async (event) => {
     return new Promise((resolve, reject) => {
-        let test = new slack('POST', '/api/api.test');
-        let test_options = test.request_option();
-        request(test_options)
+        SLACK.test()
             .then(() => {
-                const username = event.slack_username || 'bot';
-                const icon_url = event.slack_icon_url || false;
-                const as_user = event.slack_as_user || true;
+                const username = event.username || 'bot';
+                const icon_url = event.icon_url || false;
+                const as_user = event.as_user || true;
 
-                const channel = event.slack_channel || '';
-                const message = event.slack_message || today_message(message_data);
-                const atHere = event.slack_atHere || false;
-                const atSomeone = event.slack_atSomeone || false;
-                const emoji = event.slack_emoji || ' :ningning:';
-
-                let post = new slack('POST', '/api/chat.postMessage')
-                let text = post.message(atHere, atSomeone, message) + emoji;
-                let post_options = post.request_option({
-                    channel,
-                    text,
-                    as_user,
-                    icon_url,
-                    username
-                })
-                return request(post_options);
+                const channel = event.channel || '';
+                const message = event.message || today_message(message_data);
+                const atHere = event.atHere || false;
+                const atSomeone = event.atSomeone || false;
+                const emoji = event.emoji || ' :ningning:';
+                let text = SLACK.message(atHere, atSomeone, message) + emoji;
+                return SLACK.post_message(channel, text, as_user, icon_url, username)
             })
             .then(() => {
-                resolve('Done')
+                resolve('Done');
             })
             .catch((err) => {
                 reject(err)
